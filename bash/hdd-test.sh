@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 #
 # Hdd Space Test
 # v4.1 Joerg Neikes # added grep to % with tail - -1 alternative for df 
