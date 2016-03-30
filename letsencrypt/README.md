@@ -2,7 +2,6 @@ On CentOS you only need this:
 
 /root/letsencrypt/letsencrypt-auto renew --force-renewal
 
-unter gentoo halt was mehr:
 with gentoo a bit more work is needed
 
 /etc/init.d/apache2 stop
