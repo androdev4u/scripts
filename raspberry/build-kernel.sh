@@ -2,7 +2,7 @@
 
 # by Joerg Neikes 
 # version from 14.02.2016
-# license GPL3
+# license GPL 2
 
 # for use in /usr/src to compile the /usr/src/linux kernel
 # rasberry tools are needed to for this script

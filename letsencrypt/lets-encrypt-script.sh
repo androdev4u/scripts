@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # letsencrypt renewal file by Joerg Neikes aixTeMa GmbH
-# GPL3 version 0.1 10.03.2016
+# GPL2 version 0.1 10.03.2016
 
 # cryptfile to test
 LETSENCRYPTDIR="/etc/letsencrypt"
