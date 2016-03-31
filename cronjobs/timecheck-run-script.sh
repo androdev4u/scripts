@@ -1,6 +1,6 @@
 #!/bin/bash
 # timecheck-run-script.sh by Joerg Neikes
-# version 1.0
+# version 1.1
 # license GPL v2
 
 # These settings are for Europe/Berlin and should test for a  07:00 am to 07:02 am timeslot
@@ -13,69 +13,32 @@
 # It can be installed from https://github.com/hroptatyr/dateutils .
 # On gentoo do an: emerge dateutils .
 
-# datetest uses UTC so we recalc it from to Europe/Berlin to right UTC time.
+# Many thanks to Sebastian Freundt for the timezonefix with the dateconv command.
+# It's really small now.
+
+# Changelog for version 1.1
+# Recalc of UTC to CET or CEST is not needed any more.
+
+# Script to execute 
+SCRIPT="/root/bin/temp2mysql.pl"
 
 # Variables for settings and testing
 HOUR="7"
+# Plese set your timezone here
+MYTIMEZONE="Europe/Berlin"
+NOW_IN_MYTIMEZONE=`dateconv -z ${MYTIMEZONE} -f %T now`
 
-HOURSUMMER="2"
-HOURWINTER="1"
+# add zero to $HOUR if needed
+printf -v j "%02d" $HOUR
+TIMETOUSEFROM="${HOUR}:00:00"
+TIMETOUSETO="${HOUR}:02:00"
 
-# winter snd summer testing
-TIMEZONETEST=$(date +%Z)
-SUMMER="CEST"
-WINTER="CET"
-
-
-
-
-# See if we are in summer time
-if [ $TIMEZONETEST == $SUMMER ] ;
-then
-# echo "We are in summer time" # debug 
-HOURNEW=$((${HOUR}-${HOURSUMMER}))
-# HOURNEW=$((${HOUR})) # debug
-# add zero to HOURNEW
-printf -v j "%02d" $HOURNEW
-TIMETOUSEFROM="${HOURNEW}:00:00"
-TIMETOUSETO="${HOURNEW}:02:00"
-
-
-
-# only write to db if under TIMETOUSEFROM and over TIMETOUSETO
-if dtest time --gt $TIMETOUSEFROM && dtest time --lt $TIMETOUSETO; then
-
-   VARIABLE="set" # only to do something for the if
-
-#   echo "TIMETOUSEFROM $TIMETOUSEFROM and TIMETOUSET $TIMETOUSETO" # debug
- else
+if datetest ${NOW_IN_MYTIMEZONE} --lt ${TIMETOUSEFROM} || datetest ${NOW_IN_MYTIMEZONE} --gt ${TIMETOUSETO} ; then
    /home/user/bin/example-script.pl
-fi
+# else  # debug 
+#   echo "$SCRIPT is not running between ${TIMETOUSEFROM} and ${TIMETOUSETO}" # debug
 
 fi
 
-# See if we are in winter time 
 
-if [ $TIMEZONETEST == $WINTER ] ;
-then
-# echo "We are in winter time" # debug
-HOURNEW=$(($HOUR-$HOURWINTER))
-# HOURNEW=$((${HOUR})) # debug
-
-# add zero to HOURNEW
-printf -v j "%02d" $HOURNEW
-TIMETOUSEFROM="${HOURNEW}:00:00"
-TIMETOUSETO="${HOURNEW}:02:00"
-
-
-# only write to db if under TIMETOUSEFROM and over TIMETOUSETO
-if dtest time --gt $TIMETOUSEFROM && dtest time --lt $TIMETOUSETO; then
-
-   VARIABLE="set" # only to do something for the if
-
-#   echo "TIMETOUSEFROM $TIMETOUSEFROM and TIMETOUSET $TIMETOUSETO" # debug
-else
-   /home/user/bin/example-script.pl
-fi
-
-fi
+   
