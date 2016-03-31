@@ -20,7 +20,7 @@
 # Recalc of UTC to CET or CEST is not needed any more.
 
 # Script to execute 
-SCRIPT="/root/bin/temp2mysql.pl"
+SCRIPT="/home/user/bin/example-script.pl"
 
 # Variables for settings and testing
 HOUR="7"
@@ -34,7 +34,7 @@ TIMETOUSEFROM="${HOUR}:00:00"
 TIMETOUSETO="${HOUR}:02:00"
 
 if datetest ${NOW_IN_MYTIMEZONE} --lt ${TIMETOUSEFROM} || datetest ${NOW_IN_MYTIMEZONE} --gt ${TIMETOUSETO} ; then
-   /home/user/bin/example-script.pl
+   $SCRIPT
 # else  # debug 
 #   echo "$SCRIPT is not running between ${TIMETOUSEFROM} and ${TIMETOUSETO}" # debug
 
