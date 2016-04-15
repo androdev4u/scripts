@@ -1,0 +1,65 @@
+Use the script to compile the u-boot on your rasp.
+
+When ready, copy the u-boot.bin to the /boot dir.
+
+Now change the kernel to boot in the config.txt:
+kernel=u-boot.bin
+
+The first time a serial Uart console is needed to start.
+The settings are Speed 115200,Bits: 8, Parity: None, Stop Bits: 1 and Flow Control: None
+If flow control is set you can't stop the auto boot and no settings could be set!!!
+
+Now start the Rasp and disable autoboot with any key you like.
+
+
+U-boot and minicom has a problem with the = sign this must be written by hand:
+ext4 rootwait noinitrd"
+
+copy this to the u-boot:
+
+setenv machid 0x00000c42
+setenv bootargs "earlyprintk console=tty0 console=ttyAMA0 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait noinitrd"
+saveenv
+fatload mmc 0:1 ${kernel_addr_r} kernel7.img
+bootz ${kernel_addr_r}
+
+
+
+Now the linux starts.
+
+Login as root and install u-boot-tools.
+
+apt-get install u-boot-tools
+
+
+A script for auto start is created with the mkimage command.
+
+cd /root
+
+nano u-boot-load.txt
+
+# Tell Linux that it is booting on a Raspberry Pi2
+setenv machid 0x00000c42
+# Set the kernel boot command line
+setenv bootargs "earlyprintk console=tty0 console=ttyAMA0 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait noinitrd"
+# Save these changes to u-boot's environment
+saveenv
+# Load the existing Linux kernel into RAM
+fatload mmc 0:1 ${kernel_addr_r} kernel7.img
+# Boot the kernel we have just loaded
+bootz ${kernel_addr_r}
+
+
+nano mkimage.sh
+
+/bin/bash
+mkimage -A arm -O linux -T script -C none -a 0x00000000 -e 0x00000000 -n "RPi2 Boot Script" -d /root/u-boot-load.txt /boot/boot.scr
+
+chmod 775 mkimage.sh
+
+./mkimage.sh
+
+When you restart now, the systems boot automatically the kernel7.img.
+
+
+
