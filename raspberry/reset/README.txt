@@ -4,5 +4,5 @@ Set sleep time to 5 seconds.
 
 Start script per crontab!
 
-All Raspberry Pi's uses GPIO 6 for ground and GPIO 5 for pin check.
+All Raspberry Pi's uses Pin 6 for ground and Pin 5 (GPIO3) for check.
 
