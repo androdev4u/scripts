@@ -1,4 +1,5 @@
 #!/bin/bash
+IFS=$'\n'
 
 # script to get doubble files by md5sum and remove first occurence to get a remove list for doubble files
 
@@ -27,5 +28,5 @@ sed -i -e 's/$/"/g' $Dir.log
 
 # remove the doubble files
 for b in $(cat $Dir.log) ; do
-echo "rm $b" # debug
+echo -e $b | xargs rm 
 done
