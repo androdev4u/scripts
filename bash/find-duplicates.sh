@@ -28,5 +28,5 @@ sed -i -e 's/$/"/g' $Dir.log
 
 # remove the doubble files
 for b in $(cat $Dir.log) ; do
-echo -e $b | xargs rm 
+echo -n $b | xargs rm 
 done
