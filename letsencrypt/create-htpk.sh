@@ -16,13 +16,23 @@ DOMAINS=$(ls ${ARCHIEVEDIR} )
 for DOMAIN in ${DOMAINS} ; do
 CERTDIR="${ARCHIEVEDIR}${DOMAIN}"
 LASTKEY=$(ls ${CERTDIR}/cert*.pem| tail -1)
-echo ${DOMAIN}
 
 # change pem to crt
 NEWCRT=$(echo ${LASTKEY} | sed s/pem/crt/g)
 
 # create the crt file
 $openssl x509 -outform der -in ${LASTKEY} -out ${NEWCRT}
+
+# now used settings from https://scotthelme.co.uk/hpkp-http-public-key-pinning/
+# create fingerprint of the current crt
+#derpinsha256=$($openssl x509 -pubkey -inform der < ${NEWCRT} | $openssl pkey -pubin -outform der | $openssl dgst -sha256 -binary | base64)
+pinsha256=$($openssl x509 -pubkey  < ${LASTKEY} | $openssl pkey -pubin -outform der | $openssl dgst -sha256 -binary | base64)
+
+echo "Please add for ${DOMAIN}:"
+
+echo "Header always set Public-Key-Pins \"pin-sha256=\\\"${pinsha256}\\\";  max-age=5184000; includeSubDomains\""
+
+echo "to apache vhost."
 
 
 done
