@@ -1,6 +1,6 @@
 #!/bin/bash
 # create HTTP Public Key Pinning keys from letsencrypt keys
-# version 0.2 
+# version 0.3
 # by Joerg Neikes aixtema GmbH 18.10.2016
 
 openssl="/usr/bin/openssl"
@@ -63,7 +63,6 @@ echo ${config}
 # remove old header Public-Key-Pins
 sed -i '/Header always set Public-Key-Pins/,0d' ${config}
 # add new header below #Set-Public-Key-Pins
-# sed  '/#Set-Public-Key-Pins/a Header always set Public-Key-Pins="hello"' ${config}
 NEWHEADER="Header always set Public-Key-Pins \"pin-sha256=\\\\\"${serverpinsha256}\\\\\"; pin-sha256=\\\\\"${firstpinsha256}\\\\\"; pin-sha256=\\\\\"${secondpinsha256}\\\\\"; max-age=5184000; includeSubDomains\""
 
 sed -i "/#Set-Public-Key-Pins/a \ \ \ \ \ \ \ \ ${NEWHEADER}" ${config}
