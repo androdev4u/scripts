@@ -1,6 +1,6 @@
 #!/bin/bash
 # create HTTP Public Key Pinning keys from letsencrypt keys
-# version 0.1 
+# version 0.2 
 # by Joerg Neikes aixtema GmbH 18.10.2016
 
 openssl="/usr/bin/openssl"
@@ -11,6 +11,9 @@ STATE="FL"
 CITY="Ocala"
 ORGANISATION="Home"
 MAILADDRESS="webmaster@${DOMAIN}"
+
+#apache vhost settings
+APACHEVHOSTDIR="/etc/apache2/vhosts.d/"
 
 # letsencrypt settings
 LETSENCRYPTDIR="/etc/letsencrypt"
@@ -23,6 +26,9 @@ DOMAINS=$(ls ${ARCHIEVEDIR} )
 for DOMAIN in ${DOMAINS} ; do
 CERTDIR="${ARCHIEVEDIR}${DOMAIN}"
 LASTKEY=$(ls ${CERTDIR}/cert*.pem| tail -1)
+
+# get only domain without ending
+NOTDLDOMAIN=$(echo ${DOMAIN}|  cut -d"." -f1 )
 
 # change pem to crt
 NEWCRT=$(echo ${LASTKEY} | sed s/pem/crt/g)
@@ -52,12 +58,16 @@ $openssl req -new -key ${CERTDIR}/${DOMAIN}.second.key -subj "/C=${COUNTRY}/ST=$
 secondpinsha256=$($openssl  req -pubkey < ${CERTDIR}/${DOMAIN}.second.csr  | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
 
 
-echo "Please add for ${DOMAIN}:"
+for config in $(find ${APACHEVHOSTDIR} -name "*${NOTDLDOMAIN}*.conf"); do
+echo ${config}
+# remove old header Public-Key-Pins
+sed -i '/Header always set Public-Key-Pins/,0d' ${config}
+# add new header below #Set-Public-Key-Pins
+# sed  '/#Set-Public-Key-Pins/a Header always set Public-Key-Pins="hello"' ${config}
+NEWHEADER="Header always set Public-Key-Pins \"pin-sha256=\\\\\"${serverpinsha256}\\\\\"; pin-sha256=\\\\\"${firstpinsha256}\\\\\"; pin-sha256=\\\\\"${secondpinsha256}\\\\\"; max-age=5184000; includeSubDomains\""
 
-echo "Header always set Public-Key-Pins \"pin-sha256=\\\"${serverpinsha256}\\\"; pin-sha256=\\\"${firstpinsha256}\\\"; pin-sha256=\\\"${secondpinsha256}\\\"; max-age=5184000; includeSubDomains\""
-
-echo "to apache vhost."
+sed -i "/#Set-Public-Key-Pins/a \ \ \ \ \ \ \ \ ${NEWHEADER}" ${config}
 
 
-
+done
 done
