@@ -5,6 +5,13 @@
 
 openssl="/usr/bin/openssl"
 
+# Openssl Settings change to fit to your needs
+COUNTRY="US"
+STATE="FL"
+CITY="Ocala"
+ORGANISATION="Home"
+MAILADDRESS="webmaster@${DOMAIN}"
+
 # letsencrypt settings
 LETSENCRYPTDIR="/etc/letsencrypt"
 ARCHIEVEDIR="${LETSENCRYPTDIR}/archive/"
@@ -26,13 +33,31 @@ $openssl x509 -outform der -in ${LASTKEY} -out ${NEWCRT}
 # now used settings from https://scotthelme.co.uk/hpkp-http-public-key-pinning/
 # create fingerprint of the current crt
 #derpinsha256=$($openssl x509 -pubkey -inform der < ${NEWCRT} | $openssl pkey -pubin -outform der | $openssl dgst -sha256 -binary | base64)
-pinsha256=$($openssl x509 -pubkey  < ${LASTKEY} | $openssl pkey -pubin -outform der | $openssl dgst -sha256 -binary | base64)
+serverpinsha256=$($openssl x509 -pubkey  < ${LASTKEY} | $openssl pkey -pubin -outform der | $openssl dgst -sha256 -binary | base64)
+
+echo "Creating first key for ${DOMAIN}"
+# first key generation
+# create frist key
+$openssl  genrsa -out ${CERTDIR}/${DOMAIN}.first.key 4096 &>/dev/null
+# create csr
+$openssl req -new -key ${CERTDIR}/${DOMAIN}.first.key -subj "/C=${COUNTRY}/ST=${STATE}/L=${CITY}/O=${ORGANISATION}/CN=${DOMAIN}/emailAddress=${MAILADDRESS}" -sha256 -out ${CERTDIR}/${DOMAIN}.first.csr &>/dev/null
+firstpinsha256=$($openssl  req -pubkey < ${CERTDIR}/${DOMAIN}.first.csr  | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
+
+echo "Creating second key for ${DOMAIN}"
+# second key generation
+# create second key
+$openssl  genrsa -out ${CERTDIR}/${DOMAIN}.second.key 4096 &>/dev/null
+# create csr
+$openssl req -new -key ${CERTDIR}/${DOMAIN}.second.key -subj "/C=${COUNTRY}/ST=${STATE}/L=${CITY}/O=${ORGANISATION}/CN=${DOMAIN}/emailAddress=${MAILADDRESS}" -sha256 -out ${CERTDIR}/${DOMAIN}.second.csr &>/dev/null
+secondpinsha256=$($openssl  req -pubkey < ${CERTDIR}/${DOMAIN}.second.csr  | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
+
 
 echo "Please add for ${DOMAIN}:"
 
-echo "Header always set Public-Key-Pins \"pin-sha256=\\\"${pinsha256}\\\";  max-age=5184000; includeSubDomains\""
+echo "Header always set Public-Key-Pins \"pin-sha256=\\\"${serverpinsha256}\\\"; pin-sha256=\\\"${firstpinsha256}\\\"; pin-sha256=\\\"${secondpinsha256}\\\"; max-age=5184000; includeSubDomains\""
 
 echo "to apache vhost."
+
 
 
 done
