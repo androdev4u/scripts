@@ -1,66 +1,83 @@
 #!/bin/bash
 
 # by Joerg Neikes 
-# version from 14.02.2016
+# version from 284.10.2016
 # license GPL 2
 
 # for use in /usr/src to compile the /usr/src/linux kernel
 # rasberry tools are needed to for this script
 
-# for distcc setup please use thisn on rasp:
-# nano /usr/lib/distcc/bin/armv6j-hardfloat-linux-gnueabi-wrapper
-# #!/bin/bash
-# exec /usr/lib/distcc/bin/armv6j-hardfloat-linux-gnueabi-g${0:$[-2]} "$@"
-# cd /usr/lib/distcc/bin 
-# rm c++ g++ gcc cc 
-# chmod a+x /usr/lib/distcc/bin/armv6j-hardfloat-linux-gnueabi-wrapper
-# ln -s armv6j-hardfloat-linux-gnueabi-wrapper cc && ln -s armv6j-hardfloat-linux-gnueabi-wrapper gcc && ln -s armv6j-hardfloat-linux-gnueabi-wrapper g++ && ln -s armv6j-hardfloat-linux-gnueabi-wrapper c++
-
+#!/bin/bash
 
 # Global settings 
 raspnew="bcm2709"
+raspold="bcmrpi"
+
+# make default config
+echo "Do you want default configs? If so write \"YES\""
+read defaultconfigs
 
 # get the hardware we are on
 rasphardware=$(grep Hardware /proc/cpuinfo | awk '{ print tolower($3)}')
 
-distcc_hosts="DISTCC_HOSTS=\"192.168.10.72 genarm genarm\""
+distcc_hosts="DISTCC_HOSTS=\"192.168.10.72\""
 chost="CHOST=\"armv6j-hardfloat-linux-gnueabi\""
 cflags="CFLAGS=\"-O2 -pipe -march=armv6j -mfpu=vfp -mfloat-abi=hard\""
 cxxflags="CXXFLAGS=\"\${CFLAGS}\""
 distccmake="CC=\"distcc armv6j-hardfloat-linux-gnueabi-gcc\""
 distcxxmake="CXX=\"distcc armv6j-hardfloat-linux-gnueabi-g++\""
-J="-j5"
+
 
 # same for all systems
 source /etc/profile
 cd ${PWD}/linux
-echo "We clean up"
-make clean
-
+# echo "We clean up"
+# make clean
 
 # settings for bcm2709
 if [ $rasphardware = $raspnew ]
-then
+then 
 echo "we are on a $raspnew system"
 defconfig="${rasphardware}_defconfig"
+KERNEL="kernel7"
+if [ ${defaultconfigs} = "YES" ]
+then
 echo "defconfig is $defconfig"
-make ARCH=arm $defconfig
+make $defconfig
 fi
+J="-j4"
+sleep 2
+make $J zImage modules dtbs
 
+## enable DISTCC
+#DISTCC_HOSTS="192.168.10.72 genarm genarm" CHOST="armv6j-hardfloat-linux-gnueabi" CFLAGS="-O2 -pipe -march=armv6j -mfpu=vfp -mfloat-abi=hard" CXXFLAGS="${CFLAGS}" make CC="distcc armv6j-hardfloat-linux-gnueabi-gcc" CXX="distcc armv6j-h$
+# make CC="distcc armv6j-hardfloat-linux-gnueabi-gcc" CXX="distcc armv6j-hardfloat-linux-gnueabi-g++" ${J} zImage modules dtbs
 
-## enabel DISTCC
-#DISTCC_HOSTS="192.168.10.72 genarm genarm" CHOST="armv6j-hardfloat-linux-gnueabi" CFLAGS="-O2 -pipe -march=armv6j -mfpu=vfp -mfloat-abi=hard" CXXFLAGS="${CFLAGS}" make CC="distcc armv6j-hardfloat-linux-gnueabi-gcc" CXX="distcc armv6j-hardfloat-linux-gnueabi-g++" ${J}
+else 
+echo "we are on a $raspold system"
+defconfig="${raspold}_defconfig"
+KERNEL="kernel"
+if [ ${defaultconfigs} = "YES" ]
+then
+echo "defconfig is $defconfig"
+make $defconfig
+fi
+J="-j1"
+sleep 2
+make $J zImage modules dtbs
 
-make CC="distcc armv6j-hardfloat-linux-gnueabi-gcc" CXX="distcc armv6j-hardfloat-linux-gnueabi-g++" ${J} zImage modules dtbs
+## enable DISTCC
+#DISTCC_HOSTS="192.168.10.72 genarm genarm" CHOST="armv6j-hardfloat-linux-gnueabi" CFLAGS="-O2 -pipe -march=armv6j -mfpu=vfp -mfloat-abi=hard" CXXFLAGS="${CFLAGS}" make CC="distcc armv6j-hardfloat-linux-gnueabi-gcc" CXX="distcc armv6j-h$
+# make CC="distcc armv6j-hardfloat-linux-gnueabi-gcc" CXX="distcc armv6j-hardfloat-linux-gnueabi-g++" ${J} zImage modules dtbs
 
+fi
 
 echo "make modules_install"
 make modules_install
-cp /usr/src/tools/mkimage/* ${PWD}
-cp arch/arm/boot/dts/*.dtb /boot/
-cp arch/arm/boot/dts/overlays/*.dtb* /boot/overlays/
-cp arch/arm/boot/dts/overlays/README /boot/overlays/
 
-${PWD}/imagetool-uncompressed.py ${PWD}/arch/arm/boot/Image
-cp ${PWD}/arch/arm/boot/Image  /boot/kernel7.img
+cp arch/arm/boot/dts/*.dtb /boot/
+cp arch/arm/boot/dts/overlays/*.dtb /boot/overlays/
+cp arch/arm/boot/dts/overlays/README /boot/overlays/
+scripts/mkknlimg arch/arm/boot/zImage /boot/$KERNEL.img
+
 
