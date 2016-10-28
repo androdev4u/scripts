@@ -1,13 +1,11 @@
 #!/bin/bash
 
 # by Joerg Neikes 
-# version from 284.10.2016
+# version from 28.10.2016
 # license GPL 2
 
 # for use in /usr/src to compile the /usr/src/linux kernel
 # rasberry tools are needed to for this script
-
-#!/bin/bash
 
 # Global settings 
 raspnew="bcm2709"
