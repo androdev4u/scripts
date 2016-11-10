@@ -1,0 +1,79 @@
+In http port 80 setting:
+
+<VirtualHost ....
+
+        Header always set Content-Security-Policy: "default-src 'self'; style-src 'self' 'unsafe-inline'"
+
+        Header always set X-XSS-Protection "1; mode=block"
+        Header always set X-Content-Type-Options: nosniff
+        Header always append X-Frame-Options SAMEORIGIN
+        Header set X-Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'"
+        Header set X-Webkit-CSP "default-src 'self'; style-src 'self' 'unsafe-inline'"
+#Set-Public-Key-Pins # use create-htpk.sh for this
+        Header always set Public-Key-Pins "pin-sha256=\"1=\"; pin-sha256=\"/2=\"; pin-sha256=\"3=\"; max-age=5184000; includeSubDomains"
+
+DocumentRoot "/var/www/website/http/"
+
+Directory "/var/www/website/http/">
+	Options Includes FollowSymLinks MultiViews
+	AllowOverride All
+	Order deny,allow
+	IndexOptions FancyIndexing
+	IndexIgnore *
+
+
+
+</VirtualHost>
+
+
+A own dir with only a http to https redirection should be set.
+
+Like this one:
+
+nano .htaccess
+
+<IfModule mod_rewrite.c>
+
+# Enable URL rewriting
+RewriteEngine On
+## set all from port 80 to 443
+ RewriteCond %{SERVER_PORT} ^80$
+ RewriteBase /
+ RewriteRule ^(.*) https://%{SERVER_NAME}/$1 [R]
+#RewriteEngine On
+#RewriteCond %{HTTPS} off
+#RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+</IfModule>
+
+
+In https port 443 setting:
+
+<IfModule mod_ssl.c>
+<VirtualHost....
+        Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        Header always set Content-Security-Policy: "default-src 'self' 'midlandgate.de' ; style-src 'self' 'unsafe-inline'; frame-ancestors 'midlandgate.de'"
+        Header always set X-XSS-Protection "1; mode=block"
+        Header always set X-Content-Type-Options: nosniff
+        Header always append X-Frame-Options SAMEORIGIN
+        Header set X-Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline' "
+        Header set X-Webkit-CSP "default-src 'self'; style-src 'self' 'unsafe-inline'"
+        #Set-Public-Key-Pins # use create-htpk.sh for this
+        Header always set Public-Key-Pins "pin-sha256=\"1=\"; pin-sha256=\"/2=\"; pin-sha256=\"3=\"; max-age=5184000; includeSubDomains"
+        SSLEngine on
+        SSLProtocol -all -SSLv2 -SSLv3 -TLSv1.1 -TLSv1 +TLSv1.2
+        SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+        SSLCertificateFile /etc/letsencrypt/live/midlandgate.de/cert.pem
+        SSLCertificateChainFile /etc/letsencrypt/live/midlandgate.de/chain.pem
+        SSLCertificateKeyFile /etc/letsencrypt/live/midlandgate.de/privkey.pem
+        
+DocumentRoot "/var/www/website/dir/"
+        
+<Directory "/var/www/website/dir/">
+
+php_admin_value open_basedir /var/www/website/dir/
+php_admin_value disable_functions "passthru，exec，shell_exec，system，fopen，mkdir，rmdir, chmod，unlink，dir,fopen，fread，fclose，fwrite，file_exists, closedir，is_dir，readdir.opendir, fileperms.copy，unlink，delfile"
+</Directory>
+
+</VirtualHost>
+</IfModule>
