@@ -2,6 +2,9 @@
 # create HTTP Public Key Pinning keys from letsencrypt keys
 # version 0.3
 # by Joerg Neikes aixtema GmbH 18.10.2016
+# This set keys should not be changed all 3 months like the letsencrypt keys.
+# For firefox the key is written to ~/.mozilla/firefox/profile.default/SiteSecurityServiceState.txt
+
 
 openssl="/usr/bin/openssl"
 
