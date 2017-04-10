@@ -7,10 +7,10 @@
 DOMAIN="domain.tdl"
 LETSENCRYPTDIR="/etc/letsencrypt"
 KEYDIR="${LETSENCRYPTDIR}/archive/${DOMAIN}"
-LASTKEY=$(ls ${KEYDIR}/cert*.pem| tail -1)
+LASTKEY=$(ls -t ${KEYDIR}/cert*.pem| head -1)
 
 # check if cratedate is older than 88 days
-seeifolder=$(find ${LASTKEY} -mtime +66)
+seeifolder=$(find ${LASTKEY} -mtime +59)
 
 # begin testing of variables
 if [[ -z "${seeifolder}" ]];then
