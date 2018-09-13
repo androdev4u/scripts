@@ -7,7 +7,7 @@
 DOMAIN="domain.tdl"
 LETSENCRYPTDIR="/etc/letsencrypt"
 KEYDIR="${LETSENCRYPTDIR}/archive/${DOMAIN}"
-LASTKEY=$(ls -t ${KEYDIR}/cert*.pem| head -1)
+LASTKEY=$(ls -v ${KEYDIR}/cert*.pem| tail -1)
 
 # check if cratedate is older than 88 days
 seeifolder=$(find ${LASTKEY} -mtime +59)
@@ -29,7 +29,8 @@ if [ ${DaysOver} == "1" ];
 then
 # echo "new ssl cryptfile needed" # debug
 
-/etc/init.d/apache2 stop
+#/etc/init.d/apache2 stop
+systemctl stop apache2
 sleep 2
 
 # not on all installs available:
@@ -46,6 +47,16 @@ certbot renew --force-renewal
 #sleep 2
 #done 
 
-/etc/init.d/apache2 start
+# /etc/init.d/apache2 start
+systemctl start apache2
+
+# update for postfix
+
+sleep 2
+
+#/usr/sbin/postfix reload
+
+systemctl restart postfix
+
 fi
 
